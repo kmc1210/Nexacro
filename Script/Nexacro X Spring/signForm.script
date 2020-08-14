@@ -1,0 +1,82 @@
+
+this.idClick = function(obj:nexacro.Button,e:nexacro.ClickEventInfo)
+{
+   //사용자가 입력한 아이디 받아오기
+   var userIdtxt = this.userId.text;
+   if(userIdtxt < 1){
+      alert('사용할 아이디를 입력하세요 ' );
+   }else{
+      
+      var inData = ""; //서버에 전달할 데이터셋의 이름 
+      var inVariable = "userId=" + userIdtxt;
+      var outData = "ds_result=server_result"; //서버에서 보낸 데이터를 저장할 dataSet
+      var callBackFnc = "fn_idDupCheck";
+      this.transaction(
+         "idDupCheck" // 트랜잭션 ID
+         ,"http://localhost:8091/welcome/member/idcheck.do" // 요청주소
+         ,inData
+         ,outData
+         ,inVariable
+         ,callBackFnc
+      
+      );
+
+   }
+   
+};
+
+this.fn_idDupCheck = function(){
+   
+   //공백이라면
+   if(this.ds_result.getColumn(0,'result') == ""){
+      alert("사용가능한 아이디 입니다.");
+      this.Button01.set_enable(true);
+   }else {
+      alert("사용불가능한 아이디 입니다.")
+      this.Button01.set_enable(false);
+   }   
+}
+
+
+this.submitMember = function(obj:nexacro.Button,e:nexacro.ClickEventInfo)
+{
+   this.ds_member.clearData();
+   this.ds_member.addRow();
+   this.ds_member.setColumn(0,"userId",this.userId.text);
+   this.ds_member.setColumn(0,"password",this.password.text);
+   this.ds_member.setColumn(0,"tell",this.tell.text);
+   this.ds_member.setColumn(0,"email",this.email.text);
+   
+   //
+   this.transaction(
+      "signIn"
+      ,"http://localhost:8091/welcome/member/joinimple.do"
+      ,"ds_member=ds_member"
+      ,"ds_result=ds_result"
+      ,""
+      ,"callBackFunc");
+};
+
+
+	//콜백함수의 첫번째 매개변수 : 트랜잭션 ID
+	//콜백함수의 두번째 매개변수 : 에러코드
+	//	트랜잭션이 성공하면 에러코드가 0이상으로 반환
+	//콜백함수의 세번째 매개변수 : 발생한 에러메세지
+  this.callBackFunc = function(svcId, errorCode, errorMsg) {
+   
+		if(this.ds_result.getColumn(0, "result")==""){
+			alert("회원가입이 완료되었습니다.");
+		}else if(errorCode < 0 || this.ds_result.getColumn(0,"result") == "fail"){
+			
+			alert("회원가입에 실패하였습니다.");
+			
+			
+		}
+   
+   
+   }
+
+
+
+
+
